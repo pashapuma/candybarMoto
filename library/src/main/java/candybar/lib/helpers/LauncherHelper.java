@@ -745,7 +745,7 @@ public class LauncherHelper {
                 applyManual(context, launcherPackage, launcherName, "rocks.tbog.tblauncher.SettingsActivity");
                 break;
             case MOTO:
-                applyManual(context, launcherPackage, launcherName, "com.motorola.personalize.app.IconPacksActivity");
+                applyManual(context, "com.motorola.personalize", launcherName, "com.motorola.personalize.app.IconPacksActivity");
                 break;
             case SMART:
                 try {

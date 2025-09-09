@@ -41,6 +41,8 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.activity.OnBackInvokedCallback;
+import androidx.activity.OnBackInvokedDispatcher;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.android.billingclient.api.AcknowledgePurchaseParams;

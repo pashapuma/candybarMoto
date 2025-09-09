@@ -276,14 +276,18 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
             () -> {
                 // Логика обработки нажатия кнопки "Назад"
                 if (mFragManager.getBackStackEntryCount() > 0) {
-                    clearBackStack(); // Очищает весь стек, возвращая на главный экран
+                    // Очистка стека для возврата на главный экран
+                    clearBackStack();
                 } else if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-                    mDrawerLayout.closeDrawers(); // Закрывает боковое меню
+                    // Закрытие бокового меню
+                    mDrawerLayout.closeDrawers();
                 } else if (!mFragmentTag.equals(Extras.Tag.HOME)) {
+                    // Возврат на главный фрагмент, если мы не на нём
                     mPosition = mLastPosition = 0;
-                    setFragment(getFragment(mPosition)); // Возвращает на главный фрагмент
+                    setFragment(getFragment(mPosition));
                 } else {
-                    finish(); // Завершает активность и выходит на рабочий стол
+                    // Если мы на главном экране, завершаем активность
+                    finish();
                 }
             }
         );
@@ -460,7 +464,7 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onBackPressed() {
+public void onBackPressed() {
     if (mFragManager.getBackStackEntryCount() > 0) {
         clearBackStack();
         return;

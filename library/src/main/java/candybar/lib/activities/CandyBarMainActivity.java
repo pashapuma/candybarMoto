@@ -274,20 +274,9 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
         getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
             OnBackInvokedDispatcher.PRIORITY_DEFAULT,
             () -> {
-                // Логика обработки нажатия кнопки "Назад"
-                if (mFragManager.getBackStackEntryCount() > 0) {
-                    // Очистка стека для возврата на главный экран
-                    clearBackStack();
-                } else if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-                    // Закрытие бокового меню
+                // Закрываем боковое меню, если оно открыто
+                if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
                     mDrawerLayout.closeDrawers();
-                } else if (!mFragmentTag.equals(Extras.Tag.HOME)) {
-                    // Возврат на главный фрагмент, если мы не на нём
-                    mPosition = mLastPosition = 0;
-                    setFragment(getFragment(mPosition));
-                } else {
-                    // Если мы на главном экране, завершаем активность
-                    finish();
                 }
             }
         );
@@ -464,23 +453,13 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
     }
 
     @Override
-public void onBackPressed() {
-    if (mFragManager.getBackStackEntryCount() > 0) {
-        clearBackStack();
-        return;
-    }
-
+    public void onBackPressed() {
     if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
         mDrawerLayout.closeDrawers();
-        return;
+    } else {
+        // Позволяем системе самой управлять навигацией
+        super.onBackPressed();
     }
-
-    if (!mFragmentTag.equals(Extras.Tag.HOME)) {
-        mPosition = mLastPosition = 0;
-        setFragment(getFragment(mPosition));
-        return;
-    }
-    super.onBackPressed();
     }
 
     @Override

@@ -274,9 +274,21 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
         getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
             OnBackInvokedDispatcher.PRIORITY_DEFAULT,
             () -> {
-                // Закрываем боковое меню, если оно открыто
-                if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+                // Логика обработки нажатия кнопки "Назад"
+                if (mFragManager.getBackStackEntryCount() > 0) {
+                    // Возвращаем на главный экран, очищая весь стек фрагментов
+                    clearBackStack();
+                } else if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    // Закрываем боковое меню
                     mDrawerLayout.closeDrawers();
+                } else if (!mFragmentTag.equals(Extras.Tag.HOME)) {
+                    // Возвращаемся на главный фрагмент, если мы не на нём
+                    mPosition = mLastPosition = 0;
+                    setFragment(getFragment(mPosition));
+                } else {
+                    // Если мы на главном экране, завершаем активность
+                    // Это вызовет системную анимацию сворачивания
+                    finish();
                 }
             }
         );
@@ -454,12 +466,26 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
 
     @Override
     public void onBackPressed() {
-    if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-        mDrawerLayout.closeDrawers();
-    } else {
-        // Позволяем системе самой управлять навигацией
-        super.onBackPressed();
+    if (mFragManager.getBackStackEntryCount() > 0) {
+        // Очищаем стек фрагментов, возвращаясь на главный экран
+        clearBackStack();
+        return;
     }
+
+    if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+        // Закрываем боковое меню
+        mDrawerLayout.closeDrawers();
+        return;
+    }
+
+    if (!mFragmentTag.equals(Extras.Tag.HOME)) {
+        // Возвращаемся на главный фрагмент, если мы не на нём
+        mPosition = mLastPosition = 0;
+        setFragment(getFragment(mPosition));
+        return;
+    }
+    // Вызываем стандартное поведение, которое закроет активность с анимацией
+    super.onBackPressed();
     }
 
     @Override

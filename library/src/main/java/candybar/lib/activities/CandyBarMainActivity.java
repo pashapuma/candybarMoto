@@ -274,15 +274,16 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
         getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
             OnBackInvokedDispatcher.PRIORITY_DEFAULT,
             () -> {
-                if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-                    mDrawerLayout.closeDrawers();
-                } else if (mFragManager.getBackStackEntryCount() > 0) {
-                    mFragManager.popBackStack();
-                } else if (mFragmentTag != Extras.Tag.HOME) {
+                // Логика обработки нажатия кнопки "Назад"
+                if (mFragManager.getBackStackEntryCount() > 0) {
+                    clearBackStack(); // Очищает весь стек, возвращая на главный экран
+                } else if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    mDrawerLayout.closeDrawers(); // Закрывает боковое меню
+                } else if (!mFragmentTag.equals(Extras.Tag.HOME)) {
                     mPosition = mLastPosition = 0;
-                    setFragment(getFragment(mPosition));
+                    setFragment(getFragment(mPosition)); // Возвращает на главный фрагмент
                 } else {
-                    finish();
+                    finish(); // Завершает активность и выходит на рабочий стол
                 }
             }
         );
@@ -460,16 +461,22 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
 
     @Override
     public void onBackPressed() {
-        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-            mDrawerLayout.closeDrawers();
-        } else if (mFragManager.getBackStackEntryCount() > 0) {
-            mFragManager.popBackStack();
-        } else if (mFragmentTag != Extras.Tag.HOME) {
-            mPosition = mLastPosition = 0;
-            setFragment(getFragment(mPosition));
-        } else {
-            super.onBackPressed();
-        }
+    if (mFragManager.getBackStackEntryCount() > 0) {
+        clearBackStack();
+        return;
+    }
+
+    if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+        mDrawerLayout.closeDrawers();
+        return;
+    }
+
+    if (!mFragmentTag.equals(Extras.Tag.HOME)) {
+        mPosition = mLastPosition = 0;
+        setFragment(getFragment(mPosition));
+        return;
+    }
+    super.onBackPressed();
     }
 
     @Override

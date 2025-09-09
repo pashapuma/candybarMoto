@@ -267,6 +267,25 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
             setFragment(getActionFragment(IntentHelper.sAction));
         }
 
+        // OnBackInvokedCallback
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+            OnBackInvokedDispatcher.PRIORITY_DEFAULT,
+            () -> {
+                if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    mDrawerLayout.closeDrawers();
+                } else if (mFragManager.getBackStackEntryCount() > 0) {
+                    mFragManager.popBackStack();
+                } else if (mFragmentTag != Extras.Tag.HOME) {
+                    mPosition = mLastPosition = 0;
+                    setFragment(getFragment(mPosition));
+                } else {
+                    finish();
+                }
+            }
+        );
+        }
+
         checkWallpapers();
         new WallpaperThumbPreloaderTask(this).execute();
         new IconRequestTask(this).executeOnThreadPool();
@@ -439,22 +458,16 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
 
     @Override
     public void onBackPressed() {
-        if (mFragManager.getBackStackEntryCount() > 0) {
-            clearBackStack();
-            return;
-        }
-
         if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
             mDrawerLayout.closeDrawers();
-            return;
-        }
-
-        if (mFragmentTag != Extras.Tag.HOME) {
+        } else if (mFragManager.getBackStackEntryCount() > 0) {
+            mFragManager.popBackStack();
+        } else if (mFragmentTag != Extras.Tag.HOME) {
             mPosition = mLastPosition = 0;
             setFragment(getFragment(mPosition));
-            return;
+        } else {
+            super.onBackPressed();
         }
-        super.onBackPressed();
     }
 
     @Override

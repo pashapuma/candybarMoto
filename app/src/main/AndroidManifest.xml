@@ -19,7 +19,6 @@
         android:xlargeScreens="true" />
 
     <application
-		android:enableOnBackInvokedCallback="true"
         tools:ignore="AllowBackup,GoogleAppIndexingUrlError,GoogleAppIndexingWarning"
         android:name=".applications.CandyBar"
         android:allowBackup="true"

@@ -270,6 +270,13 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
         }
 
         // OnBackInvokedCallback
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+            OnBackInvokedDispatcher.PRIORITY_DEFAULT,
+            mOnBackInvokedCallback
+            );
+            }
+        }
 
         checkWallpapers();
         new WallpaperThumbPreloaderTask(this).execute();
@@ -441,25 +448,36 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
         super.onSaveInstanceState(outState);
     }
 
-    @Override
-    public void onBackPressed() {
-        if (mFragManager.getBackStackEntryCount() > 0) {
-            clearBackStack();
-            return;
-        }
+    private final OnBackInvokedCallback mOnBackInvokedCallback = () -> {
+    if (mFragManager.getBackStackEntryCount() > 0) {
+        clearBackStack();
+        return;
+    }
 
-        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-            mDrawerLayout.closeDrawers();
-            return;
-        }
+    if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+        mDrawerLayout.closeDrawers();
+        return;
+    }
 
-        if (mFragmentTag != Extras.Tag.HOME) {
-            mPosition = mLastPosition = 0;
-            setFragment(getFragment(mPosition));
-            return;
-        }
+    if (mFragmentTag != Extras.Tag.HOME) {
+        mPosition = mLastPosition = 0;
+        setFragment(getFragment(mPosition));
+        return;
+    }
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        finish();
+    } else {
+        // Устаревшая логика для старых версий, если нужно
         super.onBackPressed();
     }
+};
+
+@Override
+public void onPostCreate(Bundle savedInstanceState) {
+    super.onPostCreate(savedInstanceState);
+    mDrawerToggle.syncState();
+}
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,

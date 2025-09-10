@@ -273,29 +273,9 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
 
         // OnBackInvokedCallback
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        mOnBackInvokedCallback = () -> {
-        if (mFragManager.getBackStackEntryCount() > 0) {
-            clearBackStack();
-            return; // Явно выходим, чтобы не продолжать выполнение
-        }
-        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-            mDrawerLayout.closeDrawers();
-            return; // Явно выходим
-        }
-        if (!mFragmentTag.equals(Extras.Tag.HOME)) {
-            mPosition = mLastPosition = 0;
-            setFragment(getFragment(mPosition));
-            return; // Явно выходим
-        }
-        
-        // Когда все условия выше ложны, это значит, что мы на главном экране
-        // и готовы выйти из приложения. Мы позволяем системному обработчику
-        // сделать это, чтобы получить предиктивную анимацию.
-        // Для этого мы просто завершаем выполнение этого колбэка.
-        };
         getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
         OnBackInvokedDispatcher.PRIORITY_DEFAULT,
-        mOnBackInvokedCallback
+        this::onBackPressed
         );
         }
 

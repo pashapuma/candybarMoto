@@ -196,22 +196,26 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
     }
 
     private void handleBackPress() {
+    // Если есть что-то в стеке фрагментов, вернемся на предыдущий фрагмент
     if (mFragManager.getBackStackEntryCount() > 0) {
         clearBackStack();
         return;
     }
 
+    // Если открыто боковое меню, закроем его
     if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
         mDrawerLayout.closeDrawers();
         return;
     }
 
+    // Если мы не на главном экране (и нет фрагментов в стеке), вернемся на главный экран
     if (mFragmentTag != Extras.Tag.HOME) {
         mPosition = mLastPosition = 0;
         setFragment(getFragment(mPosition));
         return;
     }
-
+    
+    // Если мы на главном экране, просто закроем приложение
     finish();
     }
 
@@ -311,11 +315,14 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        mOnBackInvokedCallback = this::handleBackPress;
-        getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
-            OnBackInvokedDispatcher.PRIORITY_DEFAULT,
-            mOnBackInvokedCallback
-        );
+        mOnBackInvokedCallback = () -> {
+            // Эта логика будет вызвана только тогда, когда OnBackInvokedCallback зарегистрирован.
+            // В нашем случае это будет происходить только на главном экране.
+            finish();
+        };
+
+        // Мы не будем регистрировать колбэк здесь, чтобы не мешать стандартной логике
+        // возврата на предыдущие фрагменты. Регистрация будет происходить в setFragment().
         }
 
         checkWallpapers();
@@ -1040,10 +1047,17 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
     mToolbarTitle.setText(menu.getItem(mPosition).getTitle());
 
     // Управление регистрацией колбэка здесь
-    if (mFragmentTag == Extras.Tag.HOME) {
-        registerOnBackInvokedCallback();
-    } else {
-        unregisterOnBackInvokedCallback();
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        if (mFragmentTag == Extras.Tag.HOME) {
+            // Регистрируем колбэк, когда мы на главном экране
+            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                OnBackInvokedDispatcher.PRIORITY_DEFAULT,
+                mOnBackInvokedCallback
+            );
+        } else {
+            // Отменяем регистрацию колбэка, когда мы на другой странице
+            getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(mOnBackInvokedCallback);
+        }
     }
     }
 

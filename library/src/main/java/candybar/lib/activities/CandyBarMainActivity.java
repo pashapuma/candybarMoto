@@ -275,7 +275,6 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
             OnBackInvokedDispatcher.PRIORITY_DEFAULT,
             mOnBackInvokedCallback
             );
-            }
         }
 
         checkWallpapers();

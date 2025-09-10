@@ -165,9 +165,30 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
     private Runnable mTimesVisitedRunnable;
 
     private static final int NOTIFICATION_PERMISSION_CODE = 10;
+    private OnBackInvokedCallback mOnBackInvokedCallback;
 
     @NonNull
     public abstract ActivityConfiguration onInit();
+
+    private void handleBackPress() {
+    if (mFragManager.getBackStackEntryCount() > 0) {
+        clearBackStack();
+        return;
+    }
+
+    if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+        mDrawerLayout.closeDrawers();
+        return;
+    }
+
+    if (mFragmentTag != Extras.Tag.HOME) {
+        mPosition = mLastPosition = 0;
+        setFragment(getFragment(mPosition));
+        return;
+    }
+
+    finish();
+    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -206,16 +227,11 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
         initNavigationViewHeader();
 
         ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, insets) -> {
-    ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
-    params.topMargin = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
-
-    View insetPaddingView = findViewById(R.id.inset_padding);
-    if (insetPaddingView != null) {
-        insetPaddingView.getLayoutParams().height = params.topMargin;
-    }
-
-    return WindowInsetsCompat.CONSUMED;
-    });
+            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+            params.topMargin = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+            findViewById(R.id.inset_padding).getLayoutParams().height = params.topMargin;
+            return WindowInsetsCompat.CONSUMED;
+        });
 
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
@@ -269,12 +285,12 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
             setFragment(getActionFragment(IntentHelper.sAction));
         }
 
-        // OnBackInvokedCallback
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        mOnBackInvokedCallback = this::handleBackPress;
         getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
             OnBackInvokedDispatcher.PRIORITY_DEFAULT,
             mOnBackInvokedCallback
-            );
+        );
         }
 
         checkWallpapers();
@@ -383,31 +399,6 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
         askNotificationPermission.run();
     }
 
-    private final OnBackInvokedCallback mOnBackInvokedCallback = () -> {
-    if (mFragManager.getBackStackEntryCount() > 0) {
-        clearBackStack();
-        return;
-    }
-
-    if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-        mDrawerLayout.closeDrawers();
-        return;
-    }
-
-    if (mFragmentTag != Extras.Tag.HOME) {
-        mPosition = mLastPosition = 0;
-        setFragment(getFragment(mPosition));
-        return;
-    }
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        finish();
-    } else {
-        // Устаревшая логика для старых версий, если нужно
-        super.onBackPressed();
-    }
-    };
-
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
@@ -474,22 +465,13 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
 
     @Override
     public void onBackPressed() {
-        if (mFragManager.getBackStackEntryCount() > 0) {
-            clearBackStack();
-            return;
-        }
-
-        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-            mDrawerLayout.closeDrawers();
-            return;
-        }
-
-        if (mFragmentTag != Extras.Tag.HOME) {
-            mPosition = mLastPosition = 0;
-            setFragment(getFragment(mPosition));
-            return;
-        }
-        super.onBackPressed();
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+        handleBackPress();
+    } else {
+        // Мы уже обрабатываем нажатие в mOnBackInvokedCallback, 
+        // поэтому здесь ничего не делаем.
+        // Вызов super.onBackPressed() не нужен.
+    }
     }
 
     @Override
@@ -905,7 +887,7 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
             image.setRatio(16, 9);
         }
 
-        if (titleText.length() == 0) {
+        if (titleText.isEmpty()) {
             container.setVisibility(View.GONE);
         } else {
             title.setText(titleText);

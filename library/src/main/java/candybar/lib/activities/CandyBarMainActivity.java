@@ -474,9 +474,6 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
 
     @Override
     public void onBackPressed() {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-        // Логика обработки кнопки «Назад» для старых версий
-        // В вашем случае это:
         if (mFragManager.getBackStackEntryCount() > 0) {
             clearBackStack();
             return;
@@ -493,7 +490,6 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
             return;
         }
         super.onBackPressed();
-    }
     }
 
     @Override

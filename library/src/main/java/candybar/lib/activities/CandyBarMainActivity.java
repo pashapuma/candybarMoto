@@ -449,26 +449,22 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
 
     @Override
     public void onBackPressed() {
-    if (mFragManager.getBackStackEntryCount() > 0) {
-        // Очищаем стек фрагментов, возвращаясь на главный экран
-        clearBackStack();
-        return;
-    }
+        if (mFragManager.getBackStackEntryCount() > 0) {
+            clearBackStack();
+            return;
+        }
 
-    if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-        // Закрываем боковое меню
-        mDrawerLayout.closeDrawers();
-        return;
-    }
+        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+            mDrawerLayout.closeDrawers();
+            return;
+        }
 
-    if (!mFragmentTag.equals(Extras.Tag.HOME)) {
-        // Возвращаемся на главный фрагмент, если мы не на нём
-        mPosition = mLastPosition = 0;
-        setFragment(getFragment(mPosition));
-        return;
-    }
-    // Вызываем стандартное поведение, которое закроет активность с анимацией
-    super.onBackPressed();
+        if (mFragmentTag != Extras.Tag.HOME) {
+            mPosition = mLastPosition = 0;
+            setFragment(getFragment(mPosition));
+            return;
+        }
+        super.onBackPressed();
     }
 
     @Override

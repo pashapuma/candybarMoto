@@ -269,16 +269,16 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
             setFragment(getActionFragment(IntentHelper.sAction));
         }
 
-        // OnBackInvokedCallback
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
             OnBackInvokedDispatcher.PRIORITY_DEFAULT,
             () -> {
+                // Логика обработки нажатия кнопки "Назад"
                 if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
                     mDrawerLayout.closeDrawers();
                 } else if (mFragManager.getBackStackEntryCount() > 0) {
-                    mFragManager.popBackStack();
-                } else if (mFragmentTag != Extras.Tag.HOME) {
+                    clearBackStack();
+                } else if (!mFragmentTag.equals(Extras.Tag.HOME)) {
                     mPosition = mLastPosition = 0;
                     setFragment(getFragment(mPosition));
                 } else {
@@ -460,16 +460,27 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
 
     @Override
     public void onBackPressed() {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+        // Мы используем нашу логику только на старых версиях
+        // На Android 13+ будет работать OnBackInvokedCallback
         if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
             mDrawerLayout.closeDrawers();
-        } else if (mFragManager.getBackStackEntryCount() > 0) {
-            mFragManager.popBackStack();
-        } else if (mFragmentTag != Extras.Tag.HOME) {
+            return;
+        }
+
+        if (mFragManager.getBackStackEntryCount() > 0) {
+            clearBackStack();
+            return;
+        }
+
+        if (mFragmentTag != Extras.Tag.HOME) {
             mPosition = mLastPosition = 0;
             setFragment(getFragment(mPosition));
-        } else {
-            super.onBackPressed();
+            return;
         }
+        
+        super.onBackPressed();
+    }
     }
 
     @Override

@@ -383,6 +383,31 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
         askNotificationPermission.run();
     }
 
+    private final OnBackInvokedCallback mOnBackInvokedCallback = () -> {
+    if (mFragManager.getBackStackEntryCount() > 0) {
+        clearBackStack();
+        return;
+    }
+
+    if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+        mDrawerLayout.closeDrawers();
+        return;
+    }
+
+    if (mFragmentTag != Extras.Tag.HOME) {
+        mPosition = mLastPosition = 0;
+        setFragment(getFragment(mPosition));
+        return;
+    }
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        finish();
+    } else {
+        // Устаревшая логика для старых версий, если нужно
+        super.onBackPressed();
+    }
+    };
+
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
@@ -446,37 +471,6 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
         Database.get(this.getApplicationContext()).closeDatabase();
         super.onSaveInstanceState(outState);
     }
-
-    private final OnBackInvokedCallback mOnBackInvokedCallback = () -> {
-    if (mFragManager.getBackStackEntryCount() > 0) {
-        clearBackStack();
-        return;
-    }
-
-    if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-        mDrawerLayout.closeDrawers();
-        return;
-    }
-
-    if (mFragmentTag != Extras.Tag.HOME) {
-        mPosition = mLastPosition = 0;
-        setFragment(getFragment(mPosition));
-        return;
-    }
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        finish();
-    } else {
-        // Устаревшая логика для старых версий, если нужно
-        super.onBackPressed();
-    }
-};
-
-@Override
-public void onPostCreate(Bundle savedInstanceState) {
-    super.onPostCreate(savedInstanceState);
-    mDrawerToggle.syncState();
-}
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,

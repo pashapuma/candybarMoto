@@ -166,6 +166,8 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
 
     private static final int NOTIFICATION_PERMISSION_CODE = 10;
 
+    private OnBackInvokedCallback mOnBackInvokedCallback;
+
     @NonNull
     public abstract ActivityConfiguration onInit();
 
@@ -271,26 +273,29 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
 
         // OnBackInvokedCallback
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        mOnBackInvokedCallback = () -> {
+        if (mFragManager.getBackStackEntryCount() > 0) {
+            clearBackStack();
+            return; // Явно выходим, чтобы не продолжать выполнение
+        }
+        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+            mDrawerLayout.closeDrawers();
+            return; // Явно выходим
+        }
+        if (!mFragmentTag.equals(Extras.Tag.HOME)) {
+            mPosition = mLastPosition = 0;
+            setFragment(getFragment(mPosition));
+            return; // Явно выходим
+        }
+        
+        // Когда все условия выше ложны, это значит, что мы на главном экране
+        // и готовы выйти из приложения. Мы позволяем системному обработчику
+        // сделать это, чтобы получить предиктивную анимацию.
+        // Для этого мы просто завершаем выполнение этого колбэка.
+        };
         getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
-            OnBackInvokedDispatcher.PRIORITY_DEFAULT,
-            () -> {
-                // Логика обработки нажатия кнопки "Назад"
-                if (mFragManager.getBackStackEntryCount() > 0) {
-                    // Возвращаем на главный экран, очищая весь стек фрагментов
-                    clearBackStack();
-                } else if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-                    // Закрываем боковое меню
-                    mDrawerLayout.closeDrawers();
-                } else if (!mFragmentTag.equals(Extras.Tag.HOME)) {
-                    // Возвращаемся на главный фрагмент, если мы не на нём
-                    mPosition = mLastPosition = 0;
-                    setFragment(getFragment(mPosition));
-                } else {
-                    // Если мы на главном экране, завершаем активность
-                    // Это вызовет системную анимацию сворачивания
-                    finish();
-                }
-            }
+        OnBackInvokedDispatcher.PRIORITY_DEFAULT,
+        mOnBackInvokedCallback
         );
         }
 
@@ -441,6 +446,10 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
 
     @Override
     protected void onDestroy() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && mOnBackInvokedCallback != null) {
+        getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(mOnBackInvokedCallback);
+        }
+            
         InAppBillingClient.get(this).destroy();
 
         if (mLicenseHelper != null) {
@@ -467,24 +476,23 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
     @Override
     public void onBackPressed() {
     if (mFragManager.getBackStackEntryCount() > 0) {
-        // Очищаем стек фрагментов, возвращаясь на главный экран
         clearBackStack();
         return;
     }
 
     if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-        // Закрываем боковое меню
         mDrawerLayout.closeDrawers();
         return;
     }
 
     if (!mFragmentTag.equals(Extras.Tag.HOME)) {
-        // Возвращаемся на главный фрагмент, если мы не на нём
         mPosition = mLastPosition = 0;
         setFragment(getFragment(mPosition));
         return;
     }
-    // Вызываем стандартное поведение, которое закроет активность с анимацией
+    
+    // Вызываем стандартное поведение, которое закроет активность
+    // и корректно отобразит анимацию.
     super.onBackPressed();
     }
 

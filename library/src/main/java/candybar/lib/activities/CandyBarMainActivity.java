@@ -166,8 +166,6 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
 
     private static final int NOTIFICATION_PERMISSION_CODE = 10;
 
-    private OnBackInvokedCallback mOnBackInvokedCallback;
-
     @NonNull
     public abstract ActivityConfiguration onInit();
 
@@ -426,10 +424,6 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
 
     @Override
     protected void onDestroy() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && mOnBackInvokedCallback != null) {
-        getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(mOnBackInvokedCallback);
-        }
-            
         InAppBillingClient.get(this).destroy();
 
         if (mLicenseHelper != null) {
@@ -456,23 +450,24 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
     @Override
     public void onBackPressed() {
     if (mFragManager.getBackStackEntryCount() > 0) {
+        // Очищаем стек фрагментов, возвращаясь на главный экран
         clearBackStack();
         return;
     }
 
     if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+        // Закрываем боковое меню
         mDrawerLayout.closeDrawers();
         return;
     }
 
     if (!mFragmentTag.equals(Extras.Tag.HOME)) {
+        // Возвращаемся на главный фрагмент, если мы не на нём
         mPosition = mLastPosition = 0;
         setFragment(getFragment(mPosition));
         return;
     }
-    
-    // Вызываем стандартное поведение, которое закроет активность
-    // и корректно отобразит анимацию.
+    // Вызываем стандартное поведение, которое закроет активность с анимацией
     super.onBackPressed();
     }
 

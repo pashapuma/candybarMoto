@@ -270,12 +270,6 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
         }
 
         // OnBackInvokedCallback
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
-        OnBackInvokedDispatcher.PRIORITY_DEFAULT,
-        this::onBackPressed
-        );
-        }
 
         checkWallpapers();
         new WallpaperThumbPreloaderTask(this).execute();

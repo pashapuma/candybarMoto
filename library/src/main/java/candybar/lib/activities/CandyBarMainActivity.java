@@ -170,6 +170,31 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
     @NonNull
     public abstract ActivityConfiguration onInit();
 
+    private void registerOnBackInvokedCallback() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        if (mOnBackInvokedCallback == null) {
+            mOnBackInvokedCallback = () -> {
+                // Это логика, которая будет выполняться, когда пользователь делает жест «Назад» на главном экране
+                // И система показывает предиктивную анимацию
+                finish();
+            };
+            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                OnBackInvokedDispatcher.PRIORITY_DEFAULT,
+                mOnBackInvokedCallback
+            );
+        }
+    }
+    }
+        
+    private void unregisterOnBackInvokedCallback() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        if (mOnBackInvokedCallback != null) {
+            getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(mOnBackInvokedCallback);
+            mOnBackInvokedCallback = null;
+        }
+    }
+    }
+
     private void handleBackPress() {
     if (mFragManager.getBackStackEntryCount() > 0) {
         clearBackStack();
@@ -1000,19 +1025,26 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
     }
 
     private void setFragment(Fragment fragment) {
-        clearBackStack();
+    clearBackStack();
 
-        FragmentTransaction ft = mFragManager.beginTransaction()
-                .replace(R.id.container, fragment, mFragmentTag.value);
-        try {
-            ft.commit();
-        } catch (Exception e) {
-            ft.commitAllowingStateLoss();
-        }
+    FragmentTransaction ft = mFragManager.beginTransaction()
+            .replace(R.id.container, fragment, mFragmentTag.value);
+    try {
+        ft.commit();
+    } catch (Exception e) {
+        ft.commitAllowingStateLoss();
+    }
 
-        Menu menu = mNavigationView.getMenu();
-        menu.getItem(mPosition).setChecked(true);
-        mToolbarTitle.setText(menu.getItem(mPosition).getTitle());
+    Menu menu = mNavigationView.getMenu();
+    menu.getItem(mPosition).setChecked(true);
+    mToolbarTitle.setText(menu.getItem(mPosition).getTitle());
+
+    // Управление регистрацией колбэка здесь
+    if (mFragmentTag == Extras.Tag.HOME) {
+        registerOnBackInvokedCallback();
+    } else {
+        unregisterOnBackInvokedCallback();
+    }
     }
 
     private Fragment getFragment(int position) {

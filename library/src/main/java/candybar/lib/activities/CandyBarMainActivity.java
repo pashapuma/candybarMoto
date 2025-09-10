@@ -473,6 +473,30 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
     }
 
     @Override
+    public void onBackPressed() {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+        // Логика обработки кнопки «Назад» для старых версий
+        // В вашем случае это:
+        if (mFragManager.getBackStackEntryCount() > 0) {
+            clearBackStack();
+            return;
+        }
+
+        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+            mDrawerLayout.closeDrawers();
+            return;
+        }
+
+        if (mFragmentTag != Extras.Tag.HOME) {
+            mPosition = mLastPosition = 0;
+            setFragment(getFragment(mPosition));
+            return;
+        }
+        super.onBackPressed();
+    }
+    }
+
+    @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);

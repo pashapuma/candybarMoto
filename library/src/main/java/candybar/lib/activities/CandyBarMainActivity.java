@@ -165,59 +165,9 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
     private Runnable mTimesVisitedRunnable;
 
     private static final int NOTIFICATION_PERMISSION_CODE = 10;
-    private OnBackInvokedCallback mOnBackInvokedCallback;
 
     @NonNull
     public abstract ActivityConfiguration onInit();
-
-    private void registerOnBackInvokedCallback() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        if (mOnBackInvokedCallback == null) {
-            mOnBackInvokedCallback = () -> {
-                // Это логика, которая будет выполняться, когда пользователь делает жест «Назад» на главном экране
-                // И система показывает предиктивную анимацию
-                finish();
-            };
-            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
-                OnBackInvokedDispatcher.PRIORITY_DEFAULT,
-                mOnBackInvokedCallback
-            );
-        }
-    }
-    }
-        
-    private void unregisterOnBackInvokedCallback() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        if (mOnBackInvokedCallback != null) {
-            getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(mOnBackInvokedCallback);
-            mOnBackInvokedCallback = null;
-        }
-    }
-    }
-
-    private void handleBackPress() {
-    // Если есть что-то в стеке фрагментов, вернемся на предыдущий фрагмент
-    if (mFragManager.getBackStackEntryCount() > 0) {
-        clearBackStack();
-        return;
-    }
-
-    // Если открыто боковое меню, закроем его
-    if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-        mDrawerLayout.closeDrawers();
-        return;
-    }
-
-    // Если мы не на главном экране (и нет фрагментов в стеке), вернемся на главный экран
-    if (mFragmentTag != Extras.Tag.HOME) {
-        mPosition = mLastPosition = 0;
-        setFragment(getFragment(mPosition));
-        return;
-    }
-    
-    // Если мы на главном экране, просто закроем приложение
-    finish();
-    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -256,11 +206,16 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
         initNavigationViewHeader();
 
         ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, insets) -> {
-            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
-            params.topMargin = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
-            findViewById(R.id.inset_padding).getLayoutParams().height = params.topMargin;
-            return WindowInsetsCompat.CONSUMED;
-        });
+    ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+    params.topMargin = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+
+    View insetPaddingView = findViewById(R.id.inset_padding);
+    if (insetPaddingView != null) {
+        insetPaddingView.getLayoutParams().height = params.topMargin;
+    }
+
+    return WindowInsetsCompat.CONSUMED;
+    });
 
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
@@ -314,12 +269,22 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
             setFragment(getActionFragment(IntentHelper.sAction));
         }
 
-        // Регистрируем OnBackInvokedCallback только для Android 13 (API 33) и выше.
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        mOnBackInvokedCallback = this::handleBackPress;
+        // OnBackInvokedCallback
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
             OnBackInvokedDispatcher.PRIORITY_DEFAULT,
-            mOnBackInvokedCallback
+            () -> {
+                if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    mDrawerLayout.closeDrawers();
+                } else if (mFragManager.getBackStackEntryCount() > 0) {
+                    mFragManager.popBackStack();
+                } else if (mFragmentTag != Extras.Tag.HOME) {
+                    mPosition = mLastPosition = 0;
+                    setFragment(getFragment(mPosition));
+                } else {
+                    finish();
+                }
+            }
         );
         }
 
@@ -495,13 +460,16 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
 
     @Override
     public void onBackPressed() {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-        handleBackPress();
-    } else {
-        // Мы уже обрабатываем нажатие в mOnBackInvokedCallback, 
-        // поэтому здесь ничего не делаем.
-        // Вызов super.onBackPressed() не нужен.
-    }
+        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+            mDrawerLayout.closeDrawers();
+        } else if (mFragManager.getBackStackEntryCount() > 0) {
+            mFragManager.popBackStack();
+        } else if (mFragmentTag != Extras.Tag.HOME) {
+            mPosition = mLastPosition = 0;
+            setFragment(getFragment(mPosition));
+        } else {
+            super.onBackPressed();
+        }
     }
 
     @Override
@@ -917,7 +885,7 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
             image.setRatio(16, 9);
         }
 
-        if (titleText.isEmpty()) {
+        if (titleText.length() == 0) {
             container.setVisibility(View.GONE);
         } else {
             title.setText(titleText);
@@ -1030,33 +998,19 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
     }
 
     private void setFragment(Fragment fragment) {
-    clearBackStack();
+        clearBackStack();
 
-    FragmentTransaction ft = mFragManager.beginTransaction()
-            .replace(R.id.container, fragment, mFragmentTag.value);
-    try {
-        ft.commit();
-    } catch (Exception e) {
-        ft.commitAllowingStateLoss();
-    }
-
-    Menu menu = mNavigationView.getMenu();
-    menu.getItem(mPosition).setChecked(true);
-    mToolbarTitle.setText(menu.getItem(mPosition).getTitle());
-
-    // Управление регистрацией колбэка здесь
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        if (mFragmentTag == Extras.Tag.HOME) {
-            // Регистрируем колбэк, когда мы на главном экране
-            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
-                OnBackInvokedDispatcher.PRIORITY_DEFAULT,
-                mOnBackInvokedCallback
-            );
-        } else {
-            // Отменяем регистрацию колбэка, когда мы на другой странице
-            getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(mOnBackInvokedCallback);
+        FragmentTransaction ft = mFragManager.beginTransaction()
+                .replace(R.id.container, fragment, mFragmentTag.value);
+        try {
+            ft.commit();
+        } catch (Exception e) {
+            ft.commitAllowingStateLoss();
         }
-    }
+
+        Menu menu = mNavigationView.getMenu();
+        menu.getItem(mPosition).setChecked(true);
+        mToolbarTitle.setText(menu.getItem(mPosition).getTitle());
     }
 
     private Fragment getFragment(int position) {

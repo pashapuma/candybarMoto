@@ -314,15 +314,13 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
             setFragment(getActionFragment(IntentHelper.sAction));
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        mOnBackInvokedCallback = () -> {
-            // Эта логика будет вызвана только тогда, когда OnBackInvokedCallback зарегистрирован.
-            // В нашем случае это будет происходить только на главном экране.
-            finish();
-        };
-
-        // Мы не будем регистрировать колбэк здесь, чтобы не мешать стандартной логике
-        // возврата на предыдущие фрагменты. Регистрация будет происходить в setFragment().
+        // Регистрируем OnBackInvokedCallback только для Android 13 (API 33) и выше.
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        mOnBackInvokedCallback = this::handleBackPress;
+        getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+            OnBackInvokedDispatcher.PRIORITY_DEFAULT,
+            mOnBackInvokedCallback
+        );
         }
 
         checkWallpapers();

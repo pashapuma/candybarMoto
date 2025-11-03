@@ -219,10 +219,14 @@ public abstract class CandyBarMainActivity extends AppCompatActivity implements
         registerBackPressHandler();
 
         ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, insets) -> {
-            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
-            params.topMargin = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
-            findViewById(R.id.inset_padding).getLayoutParams().height = params.topMargin;
-            return WindowInsetsCompat.CONSUMED;
+    ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+    params.topMargin = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+
+    View insetPaddingView = findViewById(R.id.inset_padding);
+    if (insetPaddingView != null) {
+        insetPaddingView.getLayoutParams().height = params.topMargin;
+    }
+        return WindowInsetsCompat.CONSUMED;
         });
 
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);

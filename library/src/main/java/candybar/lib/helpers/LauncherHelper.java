@@ -11,6 +11,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.util.Pair;
 import android.widget.Toast;
+import android.app.PendingIntent;
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;

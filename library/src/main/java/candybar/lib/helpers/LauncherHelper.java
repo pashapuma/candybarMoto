@@ -1303,16 +1303,22 @@ public class LauncherHelper {
                     );
 
                     if (appWidgetManager.isRequestPinAppWidgetSupported()) {
-                        
-                        // 1. Intent, который будет запускать AppWidgetConfigurationActivity
-                        Intent configIntent = new Intent(
-                                context, 
-                                // ИСПОЛЬЗУЕМ FQCN ВМЕСТО ИМПОРТА:
-                                com.pashapuma.pix.material.you.iconpack.widget.AppWidgetConfigurationActivity.class 
+    
+                        // ComponentName для виджета: .widget.CustomIconAppWidget
+                        ComponentName provider = new ComponentName(
+                                context.getPackageName(), 
+                                context.getPackageName() + ".widget.CustomIconAppWidget"
+                        );
+
+                        // 1. Создаем Intent, используя строковое имя класса
+                        Intent configIntent = new Intent();
+                        configIntent.setClassName(
+                            context.getPackageName(), 
+                            "com.pashapuma.pix.material.you.iconpack.widget.AppWidgetConfigurationActivity"
                         );
                         configIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE);
-                        
-                        // 2. PendingIntent для запуска Activity конфигурации
+    
+                        // 2. Создаем PendingIntent, который запустит Activity конфигурации
                         PendingIntent successCallback = PendingIntent.getActivity(
                                 context,
                                 0,

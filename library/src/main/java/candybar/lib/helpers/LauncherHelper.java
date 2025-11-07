@@ -1281,52 +1281,50 @@ public class LauncherHelper {
             .typeface(TypefaceHelper.getMedium(context), TypefaceHelper.getRegular(context))
             .title(launcherName)
             .content(message)
-            .positiveText(android.R.string.yes)
-            // НАЧАЛО ЗАМЕНЕННОГО БЛОКА
+.positiveText(android.R.string.yes)
+            // НАЧАЛО БЛОКА: Замените весь этот блок до .show();
             .onPositive((dialog, which) -> {
                 CandyBarApplication.getConfiguration().getAnalyticsHandler().logEvent(
                         "click",
                         new HashMap<>() {{
                             put("section", "apply");
-                            // Обновляем действие в аналитике
                             put("action", "incompatible_pin_widget_attempt");
                             put("launcher", launcherName);
                         }}
                 );
 
-                // Проверка на Android 8.0 (Oreo) и выше
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
                     
-                    // ComponentName для виджета: packageName + .widget.CustomIconAppWidget
+                    // ComponentName для виджета: .widget.CustomIconAppWidget
                     ComponentName provider = new ComponentName(
                             context.getPackageName(), 
                             context.getPackageName() + ".widget.CustomIconAppWidget"
                     );
 
                     if (appWidgetManager.isRequestPinAppWidgetSupported()) {
-    
-                    // 1. Создаем Intent, который будет запускать AppWidgetConfigurationActivity
-                    Intent configIntent = new Intent(context, AppWidgetConfigurationActivity.class);
-                    // Добавьте действие APPWIDGET_CONFIGURE
-                    configIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE);
-    
-                    // 2. Создаем PendingIntent, который запустит Intent конфигурации
-                    PendingIntent successCallback = PendingIntent.getActivity(
+                        
+                        // 1. Intent, который будет запускать AppWidgetConfigurationActivity
+                        Intent configIntent = new Intent(
+                                context, 
+                                // ИСПОЛЬЗУЕМ FQCN ВМЕСТО ИМПОРТА:
+                                com.pashapuma.pix.material.you.iconpack.widget.AppWidgetConfigurationActivity.class 
+                        );
+                        configIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE);
+                        
+                        // 2. PendingIntent для запуска Activity конфигурации
+                        PendingIntent successCallback = PendingIntent.getActivity(
                                 context,
                                 0,
                                 configIntent,
                                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
                         );
 
-                    // 3. Отправляем запрос лаунчеру
-                    // При запросе на закрепление виджета передаем PendingIntent.
-                    // Лаунчер, добавив виджет, запустит этот PendingIntent.
-                    appWidgetManager.requestPinAppWidget(provider, null, successCallback);
+                        // 3. Отправляем запрос лаунчеру
+                        appWidgetManager.requestPinAppWidget(provider, null, successCallback);
                     }
                 }
             })
-            // КОНЕЦ ЗАМЕНЕННОГО БЛОКА
             .negativeText(android.R.string.cancel)
             .onNegative(((dialog, which) -> {
                 CandyBarApplication.getConfiguration().getAnalyticsHandler().logEvent(

@@ -1281,8 +1281,7 @@ public class LauncherHelper {
             .typeface(TypefaceHelper.getMedium(context), TypefaceHelper.getRegular(context))
             .title(launcherName)
             .content(message)
-.positiveText(android.R.string.yes)
-            // НАЧАЛО БЛОКА: Замените весь этот блок до .show();
+            .positiveText(android.R.string.yes)
             .onPositive((dialog, which) -> {
                 CandyBarApplication.getConfiguration().getAnalyticsHandler().logEvent(
                         "click",
@@ -1296,29 +1295,23 @@ public class LauncherHelper {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
                     
-                    // ComponentName для виджета: .widget.CustomIconAppWidget
+                    // ЭТО ЕДИНСТВЕННОЕ ОБЪЯВЛЕНИЕ ПЕРЕМЕННОЙ 'provider'
                     ComponentName provider = new ComponentName(
                             context.getPackageName(), 
                             context.getPackageName() + ".widget.CustomIconAppWidget"
                     );
 
                     if (appWidgetManager.isRequestPinAppWidgetSupported()) {
-    
-                        // ComponentName для виджета: .widget.CustomIconAppWidget
-                        ComponentName provider = new ComponentName(
-                                context.getPackageName(), 
-                                context.getPackageName() + ".widget.CustomIconAppWidget"
-                        );
-
-                        // 1. Создаем Intent, используя строковое имя класса
+                        
+                        // 1. Intent, который будет запускать AppWidgetConfigurationActivity
                         Intent configIntent = new Intent();
                         configIntent.setClassName(
                             context.getPackageName(), 
                             "com.pashapuma.pix.material.you.iconpack.widget.AppWidgetConfigurationActivity"
                         );
                         configIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE);
-    
-                        // 2. Создаем PendingIntent, который запустит Activity конфигурации
+                        
+                        // 2. PendingIntent для запуска Activity конфигурации
                         PendingIntent successCallback = PendingIntent.getActivity(
                                 context,
                                 0,

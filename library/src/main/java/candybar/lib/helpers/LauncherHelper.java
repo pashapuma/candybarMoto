@@ -1325,7 +1325,6 @@ public class LauncherHelper {
                     // Лаунчер, добавив виджет, запустит этот PendingIntent.
                     appWidgetManager.requestPinAppWidget(provider, null, successCallback);
                     }
-                    }
                 }
             })
             // КОНЕЦ ЗАМЕНЕННОГО БЛОКА

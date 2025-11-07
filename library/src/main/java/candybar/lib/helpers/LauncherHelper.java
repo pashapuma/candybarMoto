@@ -19,7 +19,6 @@ import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 
 import com.afollestad.materialdialogs.MaterialDialog;
-import com.pashapuma.pix.material.you.iconpack.widget.AppWidgetConfigurationActivity;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;

@@ -19,6 +19,7 @@ import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.pashapuma.pix.material.you.iconpack.widget.AppWidgetConfigurationActivity;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -1305,17 +1306,25 @@ public class LauncherHelper {
                     );
 
                     if (appWidgetManager.isRequestPinAppWidgetSupported()) {
-                        
-                        // PendingIntent для обратного вызова
-                        Intent successIntent = new Intent();
-                        PendingIntent successCallback = PendingIntent.getBroadcast(
-                                context, 
-                                0, 
-                                successIntent, 
-                                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+    
+                    // 1. Создаем Intent, который будет запускать AppWidgetConfigurationActivity
+                    Intent configIntent = new Intent(context, AppWidgetConfigurationActivity.class);
+                    // Добавьте действие APPWIDGET_CONFIGURE
+                    configIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE);
+    
+                    // 2. Создаем PendingIntent, который запустит Intent конфигурации
+                    PendingIntent successCallback = PendingIntent.getActivity(
+                                context,
+                                0,
+                                configIntent,
+                                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+                        );
 
-                        // Отправляем запрос лаунчеру (Toast удалены)
-                        appWidgetManager.requestPinAppWidget(provider, null, successCallback);
+                    // 3. Отправляем запрос лаунчеру
+                    // При запросе на закрепление виджета передаем PendingIntent.
+                    // Лаунчер, добавив виджет, запустит этот PendingIntent.
+                    appWidgetManager.requestPinAppWidget(provider, null, successCallback);
+                    }
                     }
                 }
             })

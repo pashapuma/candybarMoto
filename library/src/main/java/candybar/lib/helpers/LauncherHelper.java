@@ -1275,39 +1275,60 @@ public class LauncherHelper {
 
     private static void launcherIncompatibleCustomMessage(Context context, String launcherName, String message) {
         new MaterialDialog.Builder(context)
-                .typeface(TypefaceHelper.getMedium(context), TypefaceHelper.getRegular(context))
-                .title(launcherName)
-                .content(message)
-                .positiveText(android.R.string.yes)
-                .onPositive((dialog, which) -> {
-                    CandyBarApplication.getConfiguration().getAnalyticsHandler().logEvent(
-                            "click",
-                            new HashMap<>() {{
-                                put("section", "apply");
-                                put("action", "incompatible_third_party_open");
-                                put("launcher", launcherName);
-                            }}
+            .typeface(TypefaceHelper.getMedium(context), TypefaceHelper.getRegular(context))
+            .title(launcherName)
+            .content(message)
+            .positiveText(android.R.string.yes)
+            // НАЧАЛО ЗАМЕНЕННОГО БЛОКА
+            .onPositive((dialog, which) -> {
+                CandyBarApplication.getConfiguration().getAnalyticsHandler().logEvent(
+                        "click",
+                        new HashMap<>() {{
+                            put("section", "apply");
+                            // Обновляем действие в аналитике
+                            put("action", "incompatible_pin_widget_attempt");
+                            put("launcher", launcherName);
+                        }}
+                );
+
+                // Проверка на Android 8.0 (Oreo) и выше
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+                    
+                    // ComponentName для виджета: packageName + .widget.CustomIconAppWidget
+                    ComponentName provider = new ComponentName(
+                            context.getPackageName(), 
+                            context.getPackageName() + ".widget.CustomIconAppWidget"
                     );
-                    try {
-                        Intent store = new Intent(Intent.ACTION_VIEW, Uri.parse(thirdPartyHelperURL));
-                        context.startActivity(store);
-                    } catch (ActivityNotFoundException e) {
-                        Toast.makeText(context, context.getResources().getString(
-                                R.string.no_browser), Toast.LENGTH_LONG).show();
+
+                    if (appWidgetManager.isRequestPinAppWidgetSupported()) {
+                        
+                        // PendingIntent для обратного вызова
+                        Intent successIntent = new Intent();
+                        PendingIntent successCallback = PendingIntent.getBroadcast(
+                                context, 
+                                0, 
+                                successIntent, 
+                                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+                        // Отправляем запрос лаунчеру (Toast удалены)
+                        appWidgetManager.requestPinAppWidget(provider, null, successCallback);
                     }
-                })
-                .negativeText(android.R.string.cancel)
-                .onNegative(((dialog, which) -> {
-                    CandyBarApplication.getConfiguration().getAnalyticsHandler().logEvent(
-                            "click",
-                            new HashMap<>() {{
-                                put("section", "apply");
-                                put("action", "incompatible_third_party_cancel");
-                                put("launcher", launcherName);
-                            }}
-                    );
-                }))
-                .show();
+                }
+            })
+            // КОНЕЦ ЗАМЕНЕННОГО БЛОКА
+            .negativeText(android.R.string.cancel)
+            .onNegative(((dialog, which) -> {
+                CandyBarApplication.getConfiguration().getAnalyticsHandler().logEvent(
+                        "click",
+                        new HashMap<>() {{
+                            put("section", "apply");
+                            put("action", "incompatible_third_party_cancel");
+                            put("launcher", launcherName);
+                        }}
+                );
+            }))
+            .show();
     }
 
     private static void notInstalledError(Context context, String launcherName) {

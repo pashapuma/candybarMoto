@@ -1271,7 +1271,7 @@ public class LauncherHelper {
                 context,
                 launcherName,
                 context.getResources().getString(
-                    R.string.apply_launcher_incompatible, launcherName, launcherName
+                    R.string.apply_launcher_incompatible_pixel, launcherName, launcherName
                 )
         );
     }
@@ -1303,24 +1303,16 @@ public class LauncherHelper {
 
                     if (appWidgetManager.isRequestPinAppWidgetSupported()) {
                         
-                        // 1. Intent, который будет запускать AppWidgetConfigurationActivity
-                        Intent configIntent = new Intent();
-                        configIntent.setClassName(
-                            context.getPackageName(), 
-                            "com.pashapuma.pix.material.you.iconpack.widget.AppWidgetConfigurationActivity"
-                        );
-                        configIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE);
-                        
-                        // 2. PendingIntent для запуска Activity конфигурации
-                        PendingIntent successCallback = PendingIntent.getActivity(
-                                context,
-                                0,
-                                configIntent,
-                                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-                        );
-
                         // 3. Отправляем запрос лаунчеру
-                        appWidgetManager.requestPinAppWidget(provider, null, successCallback);
+                        // ИЗМЕНЕНИЕ: Передаем 'null' в качестве третьего параметра.
+                        // Лаунчер сам найдет и запустит твою AppWidgetConfigurationActivity.
+                        appWidgetManager.requestPinAppWidget(provider, null, null);
+
+                        // НОВОЕ: Закрываем текущую активность (раздел Apply), 
+                        // чтобы пользователь остался на рабочем столе.
+                        if (context instanceof Activity) {
+                            ((Activity) context).finish();
+                        }
                     }
                 }
             })

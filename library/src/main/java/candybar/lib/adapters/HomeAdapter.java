@@ -52,6 +52,11 @@ import com.danimahardhika.android.helpers.core.DrawableHelper;
 import com.danimahardhika.android.helpers.core.utils.LogUtil;
 import com.google.android.material.card.MaterialCardView;
 
+import android.content.ComponentName;
+import android.content.pm.PackageManager;
+import com.google.android.material.materialswitch.MaterialSwitch; 
+import android.widget.CompoundButton;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -378,6 +383,7 @@ public class HomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         private final HeaderView image;
         private final TextView title;
         private final TextView content;
+        private final MaterialSwitch folderSwitch;
 
         HeaderViewHolder(View itemView) {
             super(itemView);
@@ -387,6 +393,29 @@ public class HomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             Button rate = itemView.findViewById(R.id.rate);
             ImageView share = itemView.findViewById(R.id.share);
             ImageView update = itemView.findViewById(R.id.update);
+            folderSwitch = itemView.findViewById(R.id.switch_folder_icon);
+            if (folderSwitch != null) {
+            ComponentName componentName = new ComponentName(mContext, "com.pashapuma.pix.material.you.iconpack.widget.minifolder.MiniFolderPopupActivity");
+            PackageManager pm = mContext.getPackageManager();
+
+            int state = pm.getComponentEnabledSetting(componentName);
+            boolean isEnabled = (state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED);
+            
+            folderSwitch.setOnCheckedChangeListener(null);
+            folderSwitch.setChecked(isEnabled);
+
+            folderSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                pm.setComponentEnabledSetting(
+                        componentName,
+                        isChecked ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                        PackageManager.DONT_KILL_APP
+                );
+                
+                // Опционально: показать тост
+                String msg = isChecked ? "Icon added to launcher" : "Icon removed";
+                // Toast.makeText(mContext, msg, Toast.LENGTH_SHORT).show();
+            });
+            }
 
             MaterialCardView card = itemView.findViewById(R.id.card);
             if (CandyBarApplication.getConfiguration().getHomeGrid() == CandyBarApplication.GridStyle.FLAT) {

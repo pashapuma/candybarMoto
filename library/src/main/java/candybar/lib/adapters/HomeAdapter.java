@@ -395,7 +395,7 @@ public class HomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             ImageView update = itemView.findViewById(R.id.update);
             folderSwitch = itemView.findViewById(R.id.switch_folder_icon);
             if (folderSwitch != null) {
-            ComponentName componentName = new ComponentName(mContext, "com.pashapuma.pix.material.you.iconpack.widget.minifolder.MiniFolderPopupActivity");
+            ComponentName componentName = new ComponentName(mContext, "com.pashapuma.pix.material.you.iconpack.MiniFolderLauncherIcon");
             PackageManager pm = mContext.getPackageManager();
 
             int state = pm.getComponentEnabledSetting(componentName);

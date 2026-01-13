@@ -415,9 +415,6 @@ public class HomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
                     pm.setComponentEnabledSetting(componentName, newState, PackageManager.DONT_KILL_APP);
                 });
-
-                } catch (PackageManager.NameNotFoundException e) {
-                    folderSwitch.setVisibility(View.GONE);
                 }
             }
             

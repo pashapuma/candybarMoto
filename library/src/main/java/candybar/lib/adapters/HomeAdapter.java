@@ -395,27 +395,38 @@ public class HomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             ImageView update = itemView.findViewById(R.id.update);
             folderSwitch = itemView.findViewById(R.id.switch_folder_icon);
             if (folderSwitch != null) {
-            ComponentName componentName = new ComponentName(mContext, "com.pashapuma.pix.material.you.iconpack.MiniFolderLauncherIcon");
-            PackageManager pm = mContext.getPackageManager();
+    String packageName = mContext.getPackageName();
+    String className = packageName + ".MiniFolderLauncherIcon";
 
-            int state = pm.getComponentEnabledSetting(componentName);
-            boolean isEnabled = (state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED);
-            
-            folderSwitch.setOnCheckedChangeListener(null);
-            folderSwitch.setChecked(isEnabled);
+    ComponentName componentName = new ComponentName(packageName, className);
+    PackageManager pm = mContext.getPackageManager();
 
-            folderSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+    try {
+        // Проверяем текущее состояние
+        int state = pm.getComponentEnabledSetting(componentName);
+        boolean isEnabled = (state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED) ||
+                            (state == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT);
+
+        folderSwitch.setOnCheckedChangeListener(null);
+        folderSwitch.setChecked(isEnabled);
+        folderSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            try {
                 pm.setComponentEnabledSetting(
                         componentName,
                         isChecked ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
                         PackageManager.DONT_KILL_APP
                 );
-                
-                // Опционально: показать тост
-                String msg = isChecked ? "Icon added to launcher" : "Icon removed";
-                // Toast.makeText(mContext, msg, Toast.LENGTH_SHORT).show();
-            });
+                // Toast.makeText(mContext, isChecked ? "Icon added to launcher" : "Icon removed", Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(mContext, "Error", Toast.LENGTH_SHORT).show();
             }
+        });
+    } catch (Exception e) {
+        e.printStackTrace();
+        folderSwitch.setEnabled(false);
+    }
+}
 
             MaterialCardView card = itemView.findViewById(R.id.card);
             if (CandyBarApplication.getConfiguration().getHomeGrid() == CandyBarApplication.GridStyle.FLAT) {

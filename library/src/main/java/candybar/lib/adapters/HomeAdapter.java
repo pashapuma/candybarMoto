@@ -394,14 +394,13 @@ public class HomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             ImageView share = itemView.findViewById(R.id.share);
             ImageView update = itemView.findViewById(R.id.update);
             folderSwitch = itemView.findViewById(R.id.switch_folder_icon);
-            
-            if (folderSwitch != null) {
+
+        if (folderSwitch != null) {
             String packageName = mContext.getPackageName();
             ComponentName componentName = new ComponentName(packageName, packageName + ".MiniFolderLauncherIcon");
             PackageManager pm = mContext.getPackageManager();
 
             try {
-                pm.getActivityInfo(componentName, 0);
                 int state = pm.getComponentEnabledSetting(componentName);
                 boolean isEnabled = (state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED) ||
                                     (state == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT);
@@ -412,9 +411,12 @@ public class HomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     int newState = isChecked ? 
                             PackageManager.COMPONENT_ENABLED_STATE_ENABLED : 
                             PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
-
+                    
                     pm.setComponentEnabledSetting(componentName, newState, PackageManager.DONT_KILL_APP);
                 });
+
+                } catch (Exception e) {
+                Log.e("CandyBar", "Error setting up folderSwitch: " + e.getMessage());
                 }
             }
             

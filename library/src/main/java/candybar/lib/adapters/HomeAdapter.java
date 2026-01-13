@@ -394,40 +394,33 @@ public class HomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             ImageView share = itemView.findViewById(R.id.share);
             ImageView update = itemView.findViewById(R.id.update);
             folderSwitch = itemView.findViewById(R.id.switch_folder_icon);
+            
             if (folderSwitch != null) {
-    String packageName = mContext.getPackageName();
-    String className = packageName + ".MiniFolderLauncherIcon";
+            String packageName = mContext.getPackageName();
+            ComponentName componentName = new ComponentName(packageName, packageName + ".MiniFolderLauncherIcon");
+            PackageManager pm = mContext.getPackageManager();
 
-    ComponentName componentName = new ComponentName(packageName, className);
-    PackageManager pm = mContext.getPackageManager();
-
-    try {
-        // Проверяем текущее состояние
-        int state = pm.getComponentEnabledSetting(componentName);
-        boolean isEnabled = (state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED) ||
-                            (state == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT);
-
-        folderSwitch.setOnCheckedChangeListener(null);
-        folderSwitch.setChecked(isEnabled);
-        folderSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             try {
-                pm.setComponentEnabledSetting(
-                        componentName,
-                        isChecked ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                        PackageManager.DONT_KILL_APP
-                );
-                // Toast.makeText(mContext, isChecked ? "Icon added to launcher" : "Icon removed", Toast.LENGTH_SHORT).show();
-            } catch (Exception e) {
-                e.printStackTrace();
-                Toast.makeText(mContext, "Error", Toast.LENGTH_SHORT).show();
-            }
-        });
-    } catch (Exception e) {
-        e.printStackTrace();
-        folderSwitch.setEnabled(false);
-    }
-}
+                pm.getActivityInfo(componentName, 0);
+                int state = pm.getComponentEnabledSetting(componentName);
+                boolean isEnabled = (state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED) ||
+                                    (state == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT);
 
+                folderSwitch.setOnCheckedChangeListener(null);
+                folderSwitch.setChecked(isEnabled);
+                folderSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                    int newState = isChecked ? 
+                            PackageManager.COMPONENT_ENABLED_STATE_ENABLED : 
+                            PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+
+                    pm.setComponentEnabledSetting(componentName, newState, PackageManager.DONT_KILL_APP);
+                });
+
+                } catch (PackageManager.NameNotFoundException e) {
+                    folderSwitch.setVisibility(View.GONE);
+                }
+            }
+            
             MaterialCardView card = itemView.findViewById(R.id.card);
             if (CandyBarApplication.getConfiguration().getHomeGrid() == CandyBarApplication.GridStyle.FLAT) {
                 if (card.getLayoutParams() instanceof StaggeredGridLayoutManager.LayoutParams params) {
